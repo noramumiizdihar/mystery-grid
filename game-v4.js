@@ -44,6 +44,8 @@ function renderGridLabel(cell, category, index) {
 }
 
 function sticker(name) {
+  const cute = window.cuteIcon?.(name);
+  if (cute) return cute;
   const portrait = names.indexOf(name);
   if (portrait !== -1) {
     const accessories = [
@@ -93,19 +95,13 @@ function renderDossiers() {
         text.textContent = description;
         card.append(text);
       }
-      const related = p.clues.flatMap((clue, number) =>
-        (clue.a === category && clue.x === index) || (clue.b === category && clue.y === index) ? [number] : []);
-      if (!related.length) {
+      const nickname = window.cuteAlias?.(category, index);
+      if (nickname) {
         const text = document.createElement('p');
-        text.textContent = 'Use the other evidence to deduce this connection.';
+        text.className = 'alias';
+        text.innerHTML = (category ? 'Witnesses call this ' : 'Witnesses describe them as ') + '<strong></strong>';
+        text.querySelector('strong').textContent = '“' + nickname + '”';
         card.append(text);
-      }
-      for (const number of related) {
-        const link = document.createElement('a');
-        link.href = '#evidence';
-        link.textContent = 'Evidence ' + (number + 1);
-        link.onclick = () => showEvidence(number);
-        card.append(link);
       }
       group.append(card);
     }
@@ -114,6 +110,7 @@ function renderDossiers() {
 }
 
 function evidenceRecord(clue, index) {
+  if (window.cuteEvidence) return window.cuteEvidence(clue, index, label, d);
   const first = label(clue.a, clue.x);
   const second = label(clue.b, clue.y);
   switch (index % 3) {
