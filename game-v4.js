@@ -110,7 +110,7 @@ function renderDossiers() {
 }
 
 function evidenceRecord(clue, index) {
-  if (window.cuteEvidence) return window.cuteEvidence(clue, index, label, d);
+  if (window.cuteEvidence) return window.cuteEvidence(clue, index, label, d, l);
   const first = label(clue.a, clue.x);
   const second = label(clue.b, clue.y);
   switch (index % 3) {

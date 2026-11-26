@@ -86,38 +86,75 @@
     if (c === 4) return name === 'Midnight' ? 'at midnight' : 'at ' + name;
     return 'the ' + name.toLowerCase();
   };
-  const verb = ['', 'carried', 'waited in', 'acted out of', 'struck'];
-  const base = ['', 'carry', 'wait in', 'act out of', 'strike'];
   const cap = s => s[0].toUpperCase() + s.slice(1);
-  const witnesses = ['the butler', 'a nervous maid', 'the gardener', 'the chauffeur', 'the cook', 'the night porter'];
 
-  // How often reports use a nickname instead of the real name, by difficulty.
+  // Ways to say "linked" / "not linked" for each category on the right-hand side.
+  // yes: [past tense, base form]; no: past tense only.
+  const preds = {
+    1: { yes: [['carried', 'carry'], ['had', 'have'], ['left fingerprints on', 'leave fingerprints on'], ['was seen holding', 'hold']],
+         no: ['never touched', 'had no access to', 'left no fingerprints on', 'did not carry'] },
+    2: { yes: [['waited in', 'wait in'], ['spent the evening in', 'spend the evening in'], ['was seen pacing in', 'pace in'], ['left muddy footprints in', 'leave footprints in']],
+         no: ['never set foot in', 'stayed well away from', 'did not wait in'] },
+    3: { yes: [['acted out of', 'act out of'], ['was driven by', 'act out of']],
+         no: ['was not driven by', 'did not act out of'] },
+    4: { yes: [['struck', 'strike'], ['made their move', 'make their move']],
+         no: ['did not strike', 'had a solid alibi'] }
+  };
+  const subjects = {
+    1: ['whoever carried {A}', 'the owner of {A}', 'the one holding {A}'],
+    2: ['whoever waited in {A}', 'the person hiding in {A}'],
+    3: ['whoever acted out of {A}', 'the one driven by {A}']
+  };
+  const people = ['the butler', 'the maid', 'the gardener', 'the chauffeur', 'the cook', 'the night porter', 'the housekeeper', 'the footman', 'a stable hand', 'the piano tuner', 'the parlour maid', 'the vicar'];
+  const openers = ['I\'m certain of it — ', 'I saw it with my own eyes: ', 'Don\'t quote me, but ', 'Plain as day, ', 'I\'ll swear to this in court: ', 'Mark my words, '];
+  const places = ['in the hallway', 'through the kitchen door', 'on the back stairs', 'outside the drawing room', 'by the telephone'];
+
+  // How often reports use a nickname instead of the real name, and how often
+  // a statement is twisted (lie, double negative, contradiction...), by difficulty.
   const aliasRate = [.35, .55, .7, .8];
+  const twistRate = [.3, .5, .65, .8];
 
-  window.cuteEvidence = function (clue, index, label, difficulty) {
-    const roll = k => ((index * 37 + k * 11 + difficulty * 5) % 100) / 100;
-    const ref = (c, i, k) => {
+  window.cuteEvidence = function (clue, index, label, difficulty, level = 0) {
+    let seed = (difficulty * 1000003 + level * 7919 + index * 104729 + 12345) >>> 0;
+    const rnd = () => { seed = (Math.imul(seed ^ (seed >>> 15), 2246822519) + 3266489917) >>> 0; return (seed >>> 8) / 16777216; };
+    const pick = list => list[Math.floor(rnd() * list.length)];
+
+    const ref = (c, i) => {
       const nick = aliases[c]?.[i];
-      if (nick && roll(k) < aliasRate[difficulty]) return nick;
-      return plain(c, label(c, i));
+      return nick && rnd() < aliasRate[difficulty] ? nick : plain(c, label(c, i));
     };
-    const A = ref(clue.a, clue.x, 1), B = ref(clue.b, clue.y, 2);
-    const subject = clue.a === 0 ? A : `whoever ${verb[clue.a]} ${A}`;
-    const yesLine = `${subject} ${verb[clue.b]} ${B}`;
-    const noLine = `${subject} did not ${base[clue.b]} ${B}`;
-    const witness = witnesses[(index * 7 + difficulty) % witnesses.length];
-    switch (index % 3) {
-      case 0:
-        return { type: 'Witness statement', text: `“I'm certain of it — ${clue.yes ? yesLine : noLine}.” — ${witness}` };
-      case 1:
-        return { type: 'Intercepted note', text: cap(clue.yes ? yesLine : noLine) + '.' };
-      default:
-        return {
-          type: 'Corrected testimony',
-          text: clue.yes
-            ? `${cap(witness)} first swore that ${noLine}, then admitted that was a lie.`
-            : `${cap(witness)} first claimed that ${yesLine}, but later took the claim back.`
-        };
-    }
+    const A = ref(clue.a, clue.x), B = ref(clue.b, clue.y);
+    const S = clue.a === 0 ? A : pick(subjects[clue.a]).replace('{A}', A);
+    const P = preds[clue.b];
+    const yesPred = pick(P.yes), noPred = pick(P.no);
+    // Sentence asserting the link (true) or denying it (false).
+    const say = linked => `${S} ${linked ? yesPred[0] : noPred} ${B}`;
+    const w1 = pick(people);
+    let w2 = pick(people); if (w2 === w1) w2 = people[(people.indexOf(w1) + 3) % people.length];
+
+    const direct = [
+      () => ({ type: 'Witness statement', text: `“${pick(openers)}${say(clue.yes)}.” — ${w1}` }),
+      () => ({ type: 'Intercepted note', text: cap(say(clue.yes)) + '.' }),
+      () => ({ type: 'Forensic report', text: clue.yes
+        ? `Lab results confirm it: ${say(true)}.`
+        : `Lab results are clear: ${say(false)}.` })
+    ];
+    if (clue.a === 0) direct.push(() => ({ type: 'Diary page', text: `A torn page from the diary of ${A}: “Tonight I ${clue.yes ? yesPred[0] : noPred} ${B}.”` }));
+
+    const twisted = [
+      () => ({ type: 'Known liar', text: `${cap(w1)} has lied in every statement so far, and now insists: “${cap(say(!clue.yes))}.”` }),
+      () => ({ type: 'Corrected testimony', text: `${cap(w1)} first swore that ${say(!clue.yes)}, then admitted that was a lie.` }),
+      () => ({ type: 'Police log', text: `Officer's note: it is not true that ${say(!clue.yes)}.` }),
+      () => ({ type: 'Conflicting witnesses', text: `${cap(w1)} says ${say(!clue.yes)}. ${cap(w2)}, who was standing right beside them, says ${w1} has it completely backwards.` }),
+      () => ({ type: 'Overheard conversation', text: `Overheard ${pick(places)}: “Did ${S} really ${yesPred[1]} ${B}?” — “${clue.yes ? pick(['Without a doubt.', 'Of course. Everyone knows it.', 'I watched it happen.']) : pick(['Not a chance.', 'Never in a million years.', 'Don\'t be absurd.'])}”` })
+    ];
+    if (clue.a === 0) twisted.push(() => ({ type: 'Process of elimination', text: clue.yes
+      ? `Of all the suspects, only ${A} ${yesPred[0]} ${B}. Everyone else can be ruled out.`
+      : `${cap(A)} is one of the suspects who ${noPred} ${B}.` }));
+
+    // Keep at least one coded note per case, and twist the rest at random.
+    if (index % 5 === 1) return direct[1]();
+    const plainPool = direct.filter((_, i) => i !== 1);
+    return pick(rnd() < twistRate[difficulty] ? twisted : plainPool)();
   };
 })();
