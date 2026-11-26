@@ -65,7 +65,7 @@ button:active { filter: brightness(.94); }
 }
 .home-hero {
   display: grid;
-  align-content: center;
+  align-content: start;
   flex: 1;
   gap: clamp(.8rem, 3vw, 1.5rem);
   padding: clamp(1rem, 4vw, 3rem) max(var(--pad), env(safe-area-inset-right)) 1.25rem max(var(--pad), env(safe-area-inset-left));
@@ -162,9 +162,11 @@ header h2 { flex: 1; margin: .35rem 0; overflow-wrap: anywhere; }
 .primary { width: 100%; min-height: 54px; margin-top: .5rem; font-size: 1.1rem; }
 .panel { min-height: 24vh; }
 #boards {
-  --cell: 44px;
+  --cell: max(44px, calc((100vw - var(--pad) * 2 - 2px) / 7));
   overflow: auto;
   max-height: 57dvh;
+  width: fit-content;
+  max-width: 100%;
   border: 1px solid var(--ink);
   border-radius: .65rem;
   background: #e9eeff;
@@ -198,10 +200,10 @@ header h2 { flex: 1; margin: .35rem 0; overflow-wrap: anywhere; }
 .legend { font-size: .8rem; }
 #hint { background: var(--lime); border-color: #9ac911; }
 #clues { list-style: none; padding: 0; }
-#clues li { display: flex; align-items: flex-start; gap: .75rem; padding: .85rem 0; border-bottom: 1px solid var(--line); }
+#clues li { min-height: 48px; display: flex; align-items: flex-start; gap: .75rem; padding: .85rem 0; border-bottom: 1px solid var(--line); }
 input[type="checkbox"] { width: 20px; height: 20px; flex-shrink: 0; accent-color: var(--blue); }
 .done { text-decoration: line-through; color: var(--muted); }
-textarea { width: 100%; min-height: 12rem; resize: vertical; }
+textarea { width: 100%; min-height: min(20rem, 45dvh); resize: vertical; }
 #status, #verdict { font-weight: 700; }
 #status:empty, #verdict:empty { display: none; }
 #accuse label { display: grid; gap: .35rem; margin-block: .75rem; font-weight: 700; }
@@ -209,11 +211,12 @@ textarea { width: 100%; min-height: 12rem; resize: vertical; }
 #settings label { display: flex; align-items: center; gap: .65rem; min-height: 54px; }
 #statBody { font-size: clamp(1.35rem, 5vw, 2.5rem); font-weight: 850; }
 
-@media (min-width: 48rem) {
+@media (min-width: 48rem) and (orientation: landscape) {
   .home-hero {
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     grid-template-areas: "title art" "actions art";
     align-items: center;
+    align-content: center;
     gap: 1.25rem 2rem;
   }
   .home h1 { grid-area: title; font-size: clamp(4rem, 9vw, 8.5rem); }
@@ -222,4 +225,57 @@ textarea { width: 100%; min-height: 12rem; resize: vertical; }
   #levels { grid-template-columns: repeat(5, minmax(0, 1fr)); }
   #boards { --cell: 52px; max-height: 62dvh; }
   #accuse { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 1rem; }
+}
+
+/* Some mobile browsers use a wide layout viewport when Desktop site is enabled. */
+@media (min-width: 48rem) and (orientation: portrait) {
+  :root { font-size: clamp(16px, 2.85vw, 28px); }
+  button, input[type="number"], textarea, select { min-height: 2.75rem; }
+  header button { flex-basis: 2.75rem; }
+  .home-actions button, .primary { min-height: 3.5rem; }
+  .puzzle-art { max-width: 100%; }
+  #choices button { font-size: .9rem; }
+  .grid-tools button { flex-basis: 2.75rem; }
+}
+
+.case-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .4rem;
+}
+.case-nav a, #roster a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: .35rem .6rem;
+  border: 1px solid var(--line);
+  border-radius: .6rem;
+  background: white;
+  color: var(--blue);
+  font-weight: 700;
+}
+.workspace section { min-width: 0; scroll-margin-top: 1rem; }
+.workspace h3 { font-size: 1.4rem; margin: 1.25rem 0 .6rem; }
+.workspace #medical { margin-top: 0; }
+.case-layout { display: grid; gap: .6rem 1.25rem; }
+.grid-label { font-size: .75rem; font-weight: 800; text-transform: uppercase; }
+.grid-actions button { padding-inline: .25rem; }
+.evidence-card, #roster details {
+  border: 1px solid var(--line);
+  border-radius: .75rem;
+  background: white;
+  padding: .75rem;
+}
+#evidence-number { margin-top: 0; color: var(--muted); font-weight: 750; }
+#evidence-text { font-weight: 700; overflow-wrap: anywhere; }
+#decode-key { color: var(--muted); }
+.reviewed { min-height: 44px; display: flex; align-items: center; gap: .5rem; }
+#roster h4 { margin-bottom: .5rem; }
+#roster details { margin-block: .35rem; }
+#roster summary { min-height: 1.5rem; font-weight: 750; cursor: pointer; }
+#roster a { margin: .25rem .25rem 0 0; }
+#accusation { margin-top: 1.5rem; border-top: 1px solid var(--line); }
+
+@media (min-width: 54rem) and (orientation: landscape) {
+  .case-layout { grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); }
 }
