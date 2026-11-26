@@ -94,12 +94,48 @@ function renderDossiers() {
   }
 }
 
+function evidenceRecord(clue, index) {
+  const first = label(clue.a, clue.x);
+  const second = label(clue.b, clue.y);
+  switch (index % 3) {
+    case 0:
+      return {
+        type: 'Case register',
+        text: clue.yes
+          ? `The entry filed under “${second}” carries the same case reference as “${first}”.`
+          : `The entries for “${second}” and “${first}” carry different case references.`
+      };
+    case 1:
+      return {
+        type: 'Intercepted note',
+        text: clue.yes
+          ? `File “${second}” with “${first}”. They belong to the same entry.`
+          : `File “${second}” separately from “${first}”. They belong to different entries.`
+      };
+    default:
+      return {
+        type: 'Corrected testimony',
+        text: clue.yes
+          ? `The witness first put “${first}” and “${second}” in separate entries, then withdrew that claim. The corrected statement puts them together.`
+          : `The witness first put “${first}” together with “${second}”. The corrected statement puts them in separate entries.`
+      };
+  }
+}
+
+function shiftNote(text) {
+  return text.replace(/[a-z]/gi, letter => {
+    const base = letter <= 'Z' ? 65 : 97;
+    return String.fromCharCode(base + (letter.charCodeAt(0) - base + 3) % 26);
+  });
+}
+
 function renderEvidence() {
-  const clue = clueText(p.clues[evidenceIndex]);
-  const coded = evidenceIndex % 3 === 1 && !decoded.has(evidenceIndex) && !cross.includes(evidenceIndex);
-  $('evidence-number').textContent = (coded ? 'Encoded note' : 'Evidence') + ' · ' + (evidenceIndex + 1) + ' / ' + p.clues.length;
-  $('evidence-text').textContent = coded ? [...clue].reverse().join('') : clue;
-  $('decode-key').hidden = $('decode').hidden = coded === false;
+  const record = evidenceRecord(p.clues[evidenceIndex], evidenceIndex);
+  const coded = record.type === 'Intercepted note' && !decoded.has(evidenceIndex) && !cross.includes(evidenceIndex);
+  $('evidence-number').textContent = record.type + ' · ' + (evidenceIndex + 1) + ' / ' + p.clues.length;
+  $('evidence-text').textContent = coded ? shiftNote(record.text) : record.text;
+  $('evidence-text').classList.toggle('coded', coded);
+  $('decode-key').hidden = $('decode').hidden = !coded;
   $('reviewed').checked = cross.includes(evidenceIndex);
   $('reviewed').disabled = coded;
   $('evidence-prev').disabled = evidenceIndex === 0;

@@ -279,3 +279,18 @@ textarea { width: 100%; min-height: min(20rem, 45dvh); resize: vertical; }
 @media (min-width: 54rem) and (orientation: landscape) {
   .case-layout { grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); }
 }
+
+.evidence-guide { color: var(--muted); }
+.evidence-card {
+  border-inline-start: .3rem solid var(--blue);
+  padding: 1rem;
+}
+#evidence-text { min-height: 3em; line-height: 1.55; }
+#evidence-text.coded {
+  padding: .65rem;
+  border-radius: .35rem;
+  background: #e9eeff;
+  font-family: ui-monospace, monospace;
+}
+#decode { background: var(--lime); }
+.evidence-card button:disabled { opacity: .48; cursor: default; }
