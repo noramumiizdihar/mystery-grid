@@ -40,14 +40,31 @@ const dossierDescriptions = [
 function renderGridLabel(cell, category, index) {
   const name = label(category, index);
   cell.title = name;
-  if (!$('evidence-text')) {
-    cell.innerHTML = icon(name);
-    return;
+  cell.innerHTML = $('evidence-text') ? sticker(name) : icon(name);
+}
+
+function sticker(name) {
+  const portrait = names.indexOf(name);
+  if (portrait !== -1) {
+    const accessories = [
+      '<g fill="none" stroke="#334062" stroke-width="1.6"><circle cx="11" cy="14" r="2.8"/><circle cx="21" cy="14" r="2.8"/><path d="M14 14h4"/></g>',
+      '<path d="M7 10h18L21 5H11z" fill="#ce466d"/><path d="M5 10h22" stroke="#913c66" stroke-width="1.5"/>',
+      '<path d="M9 10l7-5 7 5v3H9z" fill="#486a83"/><path d="M16 6v4m-2-2h4" stroke="white" stroke-width="1.2"/>',
+      '<path d="M7 10h18l-2-5H9z" fill="#3e548e"/><path d="M9 10h13" stroke="#efc772" stroke-width="2"/>',
+      '<path d="M8 10q3-7 10-5l5 5" fill="#90669f"/><circle cx="22" cy="9" r="2.5" fill="#f2ccef"/>',
+      '<path d="M8 11h16l-3-7H11z" fill="#34415f"/><path d="M6 11h20" stroke="#34415f" stroke-width="1.5"/>'
+    ];
+    const skin = ['#f3c89f','#f1bd9c','#b77e64','#deb28e','#f5c7b0','#9c6756'][portrait];
+    const jacket = ['#7e91db','#de6d96','#5a9cab','#6d84bc','#ad80bc','#677695'][portrait];
+    return `<svg class="item sticker" viewBox="0 0 32 32" role="img" aria-label="${name}"><title>${name}</title><rect x="1" y="1" width="30" height="30" rx="9" fill="#e5ebff"/><path d="M5 31a11 11 0 0 1 22 0" fill="${jacket}"/><ellipse cx="16" cy="15" rx="9" ry="10" fill="${skin}"/><circle cx="12.5" cy="14.5" r="1" fill="#32263c"/><circle cx="19.5" cy="14.5" r="1" fill="#32263c"/><ellipse cx="11" cy="18" rx="1.8" ry="1" fill="#ea9a9f"/><ellipse cx="21" cy="18" rx="1.8" ry="1" fill="#ea9a9f"/><path d="M14 18q2 2 4 0" fill="none" stroke="#683c48" stroke-linecap="round"/>${accessories[portrait]}</svg>`;
   }
-  const abbreviation = name.split(' ').at(-1).slice(0, 3);
-  cell.textContent = abbreviation;
-  cell.classList.add('grid-label');
-  cell.setAttribute('aria-label', name);
+
+  const category = cats.findIndex(group => group.slice(1).includes(name));
+  const palette = [['#ffe2ec','#932852'], ['#ddf5de','#295f4b'], ['#f0e6ff','#674492'], ['#daedff','#285b90'], ['#fff0ce','#835523']];
+  const [background, foreground] = palette[category];
+  return lineIcon(name).replace('class="item"', 'class="item sticker"')
+    .replace('stroke="currentColor"', `stroke="${foreground}"`)
+    .replace('<path d=', `<rect width="24" height="24" rx="6" fill="${background}" stroke="none"/><path d=`);
 }
 
 function showEvidence(index) {
@@ -66,7 +83,9 @@ function renderDossiers() {
     for (const [index, name] of items(category).entries()) {
       const card = document.createElement('details');
       const title = document.createElement('summary');
-      title.textContent = name;
+      title.innerHTML = sticker(name);
+      title.firstElementChild.setAttribute('aria-hidden','true');
+      title.append(document.createTextNode(name));
       card.append(title);
       const description = dossierDescriptions[category]?.[index];
       if (description) {

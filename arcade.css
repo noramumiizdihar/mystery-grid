@@ -294,3 +294,11 @@ textarea { width: 100%; min-height: min(20rem, 45dvh); resize: vertical; }
 }
 #decode { background: var(--lime); }
 .evidence-card button:disabled { opacity: .48; cursor: default; }
+
+#roster summary .sticker {
+  width: 1.85rem;
+  height: 1.85rem;
+  margin-inline: .25rem .5rem;
+  vertical-align: middle;
+}
+.triangle .sticker { padding: 2px; }
