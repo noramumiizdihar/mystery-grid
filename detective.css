@@ -232,7 +232,7 @@ header h2 { flex: 1; margin: 0; overflow-wrap: anywhere; }
 #evidence-text { min-height: 3em; margin: 0 0 10px; font-family: var(--serif); font-size: 1.12rem; font-weight: 600; line-height: 1.55; overflow-wrap: anywhere; }
 #evidence-text.coded { padding: 10px 12px; border-radius: 8px; background: var(--night); color: #e5ecff; font-family: ui-monospace, Menlo, monospace; font-size: .95rem; letter-spacing: .03em; }
 #decode-key { margin: 0 0 10px; color: var(--muted); font-size: .88rem; }
-#decode { width: 100%; background: var(--night); color: #fff; border-color: var(--night); }
+#copy-cipher { width: 100%; background: var(--night); color: #fff; border-color: var(--night); }
 .reviewed { display: flex; align-items: center; gap: 10px; min-height: 46px; font-weight: 500; }
 input[type="checkbox"] { width: 20px; height: 20px; flex-shrink: 0; accent-color: var(--green); }
 .evidence-card .tools { margin-bottom: 0; }

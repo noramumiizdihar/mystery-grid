@@ -29,7 +29,6 @@ const $=id=>document.getElementById(id),names=['Professor Ash','Lady Scarlet','D
 'M9 2h6v5H9zM9 17h6v5H9zM12 7a5 5 0 1 0 0 10 5 5 0 1 0 0-10M12 9v3l2 1',
 'M12 2a10 10 0 1 0 0 20 10 10 0 1 0 0-20M12 5v14M16 8H9v4h6v4H8',
 'M4 3h16v6H4zM8 9v12l4-2 4 2V9'];const all=[...names,...cats[0].slice(1),...cats[1].slice(1),...cats[2].slice(1),...cats[4].slice(1)];function lineIcon(x){let i=all.indexOf(x),p=shapes[i];if(cats[3].includes(x)){let h=parseInt(x)||12,a=h*Math.PI/6;p='M12 2a10 10 0 1 0 0 20 10 10 0 1 0 0-20M12 12V4M12 12L'+(12+6*Math.sin(a))+' '+(12-6*Math.cos(a))}return '<svg class="item" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" role="img" aria-label="'+x+'"><title>'+x+'</title><path d="'+(p||'M3 3h18v18H3z')+'"/></svg>'}let d=0,l=0,p,marks={},cross=[],history=[],saved={},auto=true;try{saved=JSON.parse(localStorage.getItem('mg-v3')||'{}');auto=localStorage.getItem('mg-auto')!=='false'}catch{}const key=()=>d+'-'+l,items=c=>c===0?names.slice(0,p.n):cats[c-1].slice(1,p.n+1),label=(c,i)=>items(c)[i],cell=(a,x,b,y)=>[a,x,b,y].join('-');function save(){saved[key()]={marks,cross,done:saved[key()]?.done||false};try{localStorage.setItem('mg-v3',JSON.stringify(saved))}catch{}}function snap(){history.push(JSON.stringify({marks,cross}))}let evidenceIndex = 0;
-let decoded = new Set();
 
 const dossierDescriptions = [
   ['A professor with an eye for detail.', 'A society guest known for her composure.', 'A doctor accustomed to keeping confidences.', 'A retired captain with a precise manner.', 'A reserved guest who keeps to herself.', 'A private guest with few known connections.'],
@@ -148,22 +147,24 @@ function evidenceRecord(clue, index) {
   }
 }
 
-function shiftNote(text) {
+function shiftNote(text, shift) {
   return text.replace(/[a-z]/gi, letter => {
     const base = letter <= 'Z' ? 65 : 97;
-    return String.fromCharCode(base + (letter.charCodeAt(0) - base + 3) % 26);
+    return String.fromCharCode(base + (letter.charCodeAt(0) - base + shift) % 26);
   });
 }
 
 function renderEvidence() {
   const record = evidenceRecord(p.clues[evidenceIndex], evidenceIndex);
-  const coded = record.type === 'Intercepted note' && !decoded.has(evidenceIndex) && !cross.includes(evidenceIndex);
+  const coded = record.type === 'Intercepted note';
+  const shift = 1 + (d * 13 + l * 7 + evidenceIndex * 11) % 25;
   $('evidence-number').textContent = record.type + ' · ' + (evidenceIndex + 1) + ' / ' + p.clues.length;
-  $('evidence-text').textContent = coded ? shiftNote(record.text) : record.text;
+  $('evidence-text').textContent = coded ? shiftNote(record.text, shift) : record.text;
   $('evidence-text').classList.toggle('coded', coded);
-  $('decode-key').hidden = $('decode').hidden = !coded;
+  $('decode-key').hidden = $('copy-cipher').hidden = !coded;
+  $('decode-key').textContent = coded ? `Shift each letter back by ${shift}. ${String.fromCharCode(65 + shift)} becomes A.` : '';
+  $('copy-result').textContent = '';
   $('reviewed').checked = cross.includes(evidenceIndex);
-  $('reviewed').disabled = coded;
   $('evidence-prev').disabled = evidenceIndex === 0;
   $('evidence-next').disabled = evidenceIndex === p.clues.length - 1;
 }
@@ -171,10 +172,19 @@ function renderEvidence() {
 if ($('evidence-text')) {
   $('evidence-prev').onclick = () => showEvidence(evidenceIndex - 1);
   $('evidence-next').onclick = () => showEvidence(evidenceIndex + 1);
-  $('decode').onclick = () => {
-    decoded.add(evidenceIndex);
-    renderEvidence();
-    $('reviewed').focus();
+  $('copy-cipher').onclick = async () => {
+    const field = $('evidence-text');
+    const ciphertext = field.textContent;
+    let message = 'Copied.';
+    try {
+      await navigator.clipboard.writeText(ciphertext);
+    } catch {
+      if (field.textContent !== ciphertext) return;
+      const selection = window.getSelection();
+      selection.selectAllChildren(field);
+      if (!document.execCommand('copy')) message = 'Text selected. Use Copy in the selection menu.';
+    }
+    if (field.textContent === ciphertext) $('copy-result').textContent = message;
   };
   $('reviewed').onchange = event => {
     snap();
@@ -184,7 +194,7 @@ if ($('evidence-text')) {
   };
 }
 
-function start(){p=generate(d,l);if ($('evidence-text')) addWitnessAlternatives(p);evidenceIndex=0;decoded=new Set();marks=saved[key()]?.marks||{};cross=saved[key()]?.cross||[];history=[];$ ('number').value=l+1;$('notepad').value=localStorage.getItem('mg-note-'+key())||'';$('verdict').textContent='';$('page').textContent=(Math.floor(l/20)+1)+' / 50';if ($('difficulty')) $('pickTitle').textContent=['Easy','Medium','Hard','Expert'][d]+' Cases';
+function start(){p=generate(d,l);if ($('evidence-text')) addWitnessAlternatives(p);evidenceIndex=0;marks=saved[key()]?.marks||{};cross=saved[key()]?.cross||[];history=[];$ ('number').value=l+1;$('notepad').value=localStorage.getItem('mg-note-'+key())||'';$('verdict').textContent='';$('page').textContent=(Math.floor(l/20)+1)+' / 50';if ($('difficulty')) $('pickTitle').textContent=['Easy','Medium','Hard','Expert'][d]+' Cases';
 $('choices').querySelectorAll('button').forEach((button,index)=>button.setAttribute('aria-pressed',String(index===d)));$('playTitle').textContent='Case '+String(d*1000+l+1).padStart(4,'0');$('caseTitle').textContent='Case '+String(d*1000+l+1).padStart(4,'0')+' — '+['The Midnight Affair','The Silent Guest','The Last Invitation','The Locked Door','The Final Toast'][l%5];$('story').textContent='A guest was found dead at '+['Blackwood Manor','Raven Hall','the Silver Hotel','Ashcroft Estate','the old embassy'][Math.floor(l/5)%5]+'. Investigators identified '+p.n+' suspects. Each had a different weapon and location. Reconstruct their movements. The medical report identifies '+label(1,p.sol[1][p.culprit])+' as the murder weapon.';$('medical').textContent='Medical report: the victim was killed with '+label(1,p.sol[1][p.culprit])+'.';$('status').textContent='';if ($('evidence-text')) renderDossiers(); else $('roster').innerHTML=Array.from({length:p.k},(_,c)=>'<h3>'+ (c?cats[c-1][0]:'Suspects')+'</h3><div class="roster">'+items(c).map(x=>'<span>'+icon(x)+'<small>'+x+'</small></span>').join('')+'</div>').join('');$('accuse').innerHTML=Array.from({length:p.k},(_,c)=>'<label>'+ (c?cats[c-1][0]:'Culprit')+'<select id="a'+c+'"><option value="">Choose...</option>'+items(c).map((x,i)=>'<option value="'+i+'">'+x+'</option>').join('')+'</select></label>').join('');render()}function clueText(q){return label(q.a,q.x)+' '+(q.yes?'was linked to':'was not linked to')+' '+label(q.b,q.y)+'.'}function render(){let n=p.n,k=p.k,m=(k-1)*n;$('progress').textContent=Object.keys(saved).filter(x=>x.startsWith(d+'-')&&saved[x].done).length+' / 1000 solved';$('levels').innerHTML='';let base=Math.floor(l/20)*20;for(let i=base;i<base+20;i++){let b=document.createElement('button');const solved=!!saved[d+'-'+i]?.done;
   b.textContent=$('difficulty')?String(i+1)+(solved?' ★':''):String(i+1).padStart(2,'0');
   b.classList.toggle('solved',solved);
