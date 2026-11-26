@@ -1,2 +1,17 @@
 function generate(d,l){let n=d+3,k=[3,4,4,5][d],seed=(98231+d*1000003+l*7919)>>>0;const r=()=>{seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed/4294967296};function shuffle(a){for(let i=a.length-1;i>0;i--){let j=Math.floor(r()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}let sol=[Array.from({length:n},(_,i)=>i)],clues=[];for(let c=1;c<k;c++){sol.push(shuffle(Array.from({length:n},(_,i)=>i)));let order=shuffle([...sol[0]]);for(let i of order.slice(0,-1)){let p=d?Math.floor(r()*c):0;clues.push({a:p,x:sol[p][i],b:c,y:sol[c][i],yes:true});if(d){let j=(i+1+Math.floor(r()*(n-1)))%n;clues.push({a:p,x:sol[p][i],b:c,y:sol[c][j],yes:false})}}}return {n,k,sol,clues:shuffle(clues),culprit:Math.floor(r()*n)}}
 function countSolutions(p){let {n,k,clues}=p,assigned=[Array.from({length:n},(_,i)=>i)],count=0;function go(c){if(count>1)return;if(c===k){count++;return}function perm(a){if(a.length===n){assigned[c]=a;if(clues.filter(q=>q.b===c).every(q=>(assigned[q.a].indexOf(q.x)===a.indexOf(q.y))===q.yes))go(c+1);return}for(let i=0;i<n;i++)if(!a.includes(i))perm([...a,i])}perm([])}go(1);return count}
+
+// Each alternative points to an item already accounted for earlier in this
+// category's chain. Resolving the chain recovers the original assignments.
+function addWitnessAlternatives(puzzle) {
+  for (let category = 1; category < puzzle.k; category++) {
+    const chain = puzzle.clues.filter(clue => clue.b === category && clue.yes);
+    // Evidence is shown in file order. Some corroborating cards come later.
+    if ((category + puzzle.culprit) % 2) chain.reverse();
+    for (let i = 1; i < chain.length; i++) {
+      const clue = chain[i];
+      clue.alternative = chain[i - 1].y;
+      clue.alternativeFirst = (clue.x + clue.y + i + puzzle.culprit) % 2 === 0;
+    }
+  }
+}

@@ -110,9 +110,19 @@ function renderDossiers() {
 }
 
 function evidenceRecord(clue, index) {
-  if (window.cuteEvidence) return window.cuteEvidence(clue, index, label, d, l);
   const first = label(clue.a, clue.x);
   const second = label(clue.b, clue.y);
+  if (clue.alternative !== undefined) {
+    const other = label(clue.b, clue.alternative);
+    const options = clue.alternativeFirst ? [other, second] : [second, other];
+    const subject = clue.a === 0 ? first : `the person connected to ${first}`;
+    const verb = ['','carried','was seen in','had the motive','was recorded at'][clue.b];
+    return {
+      type: index % 4 === 1 ? 'Intercepted note' : 'Partial identification',
+      text: `The witness could narrow it down to two possibilities: ${subject} ${verb} either ${options[0]} or ${options[1]}.`
+    };
+  }
+  if (window.cuteEvidence) return window.cuteEvidence(clue, index, label, d, l);
   switch (index % 3) {
     case 0:
       return {
@@ -174,7 +184,7 @@ if ($('evidence-text')) {
   };
 }
 
-function start(){p=generate(d,l);evidenceIndex=0;decoded=new Set();marks=saved[key()]?.marks||{};cross=saved[key()]?.cross||[];history=[];$ ('number').value=l+1;$('notepad').value=localStorage.getItem('mg-note-'+key())||'';$('verdict').textContent='';$('page').textContent=(Math.floor(l/20)+1)+' / 50';if ($('difficulty')) $('pickTitle').textContent=['Easy','Medium','Hard','Expert'][d]+' Cases';
+function start(){p=generate(d,l);if ($('evidence-text')) addWitnessAlternatives(p);evidenceIndex=0;decoded=new Set();marks=saved[key()]?.marks||{};cross=saved[key()]?.cross||[];history=[];$ ('number').value=l+1;$('notepad').value=localStorage.getItem('mg-note-'+key())||'';$('verdict').textContent='';$('page').textContent=(Math.floor(l/20)+1)+' / 50';if ($('difficulty')) $('pickTitle').textContent=['Easy','Medium','Hard','Expert'][d]+' Cases';
 $('choices').querySelectorAll('button').forEach((button,index)=>button.setAttribute('aria-pressed',String(index===d)));$('playTitle').textContent='Case '+String(d*1000+l+1).padStart(4,'0');$('caseTitle').textContent='Case '+String(d*1000+l+1).padStart(4,'0')+' — '+['The Midnight Affair','The Silent Guest','The Last Invitation','The Locked Door','The Final Toast'][l%5];$('story').textContent='A guest was found dead at '+['Blackwood Manor','Raven Hall','the Silver Hotel','Ashcroft Estate','the old embassy'][Math.floor(l/5)%5]+'. Investigators identified '+p.n+' suspects. Each had a different weapon and location. Reconstruct their movements. The medical report identifies '+label(1,p.sol[1][p.culprit])+' as the murder weapon.';$('medical').textContent='Medical report: the victim was killed with '+label(1,p.sol[1][p.culprit])+'.';$('status').textContent='';if ($('evidence-text')) renderDossiers(); else $('roster').innerHTML=Array.from({length:p.k},(_,c)=>'<h3>'+ (c?cats[c-1][0]:'Suspects')+'</h3><div class="roster">'+items(c).map(x=>'<span>'+icon(x)+'<small>'+x+'</small></span>').join('')+'</div>').join('');$('accuse').innerHTML=Array.from({length:p.k},(_,c)=>'<label>'+ (c?cats[c-1][0]:'Culprit')+'<select id="a'+c+'"><option value="">Choose...</option>'+items(c).map((x,i)=>'<option value="'+i+'">'+x+'</option>').join('')+'</select></label>').join('');render()}function clueText(q){return label(q.a,q.x)+' '+(q.yes?'was linked to':'was not linked to')+' '+label(q.b,q.y)+'.'}function render(){let n=p.n,k=p.k,m=(k-1)*n;$('progress').textContent=Object.keys(saved).filter(x=>x.startsWith(d+'-')&&saved[x].done).length+' / 1000 solved';$('levels').innerHTML='';let base=Math.floor(l/20)*20;for(let i=base;i<base+20;i++){let b=document.createElement('button');const solved=!!saved[d+'-'+i]?.done;
   b.textContent=$('difficulty')?String(i+1)+(solved?' ★':''):String(i+1).padStart(2,'0');
   b.classList.toggle('solved',solved);
