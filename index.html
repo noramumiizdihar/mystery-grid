@@ -1,26 +1,41 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1, viewport-fit=cover"><meta name="theme-color" content="#f8f9ff"><link rel="manifest" href="manifest.json"><title>Mystery Grid</title><link rel="stylesheet" href="arcade.css?v=5"></head><body><main>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1, viewport-fit=cover"><meta name="theme-color" content="#13203a"><link rel="manifest" href="manifest.json"><title>Mystery Grid</title><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,800&family=Inter:wght@400;500;600;700&display=swap"><link rel="stylesheet" href="detective.css?v=6"></head><body><main>
 <section id="home" class="screen home">
-  <div class="wordmark"><span class="brand-mark" aria-hidden="true"></span>Mystery Grid</div>
+  <div class="wordmark"><span class="brand-mark" aria-hidden="true"></span>Mystery Grid <small>Detective Files</small></div>
   <div class="home-hero">
-    <h1>Mystery<br>Grid</h1>
-    <div class="puzzle-art" aria-hidden="true"><span></span><span>✓</span><span></span><span></span><span></span><span>×</span></div>
+    <p class="eyebrow">Case files · 4,000 mysteries</p>
+    <h1>Every clue<br>has a <em>place</em>.</h1>
+    <p class="tagline">Read the evidence, fill the logic grid and name the culprit.</p>
+    <svg class="hero-art" viewBox="0 0 320 200" aria-hidden="true">
+      <rect x="20" y="22" width="190" height="156" rx="14" fill="#fffaf0" transform="rotate(-4 115 100)"/>
+      <g transform="rotate(-4 115 100)" stroke="#d9cbb0" stroke-width="2">
+        <path d="M60 30v140M100 30v140M140 30v140M180 30v140M28 62h174M28 100h174M28 138h174"/>
+      </g>
+      <g transform="rotate(-4 115 100)" font-family="Georgia,serif" font-weight="700" font-size="26" text-anchor="middle">
+        <text x="80" y="90" fill="#2f7a55">✓</text><text x="120" y="90" fill="#b4364a">×</text>
+        <text x="160" y="128" fill="#2f7a55">✓</text><text x="80" y="128" fill="#b4364a">×</text>
+        <text x="120" y="166" fill="#2f7a55">✓</text>
+      </g>
+      <circle cx="222" cy="104" r="46" fill="rgba(255,255,255,.12)" stroke="#f2b544" stroke-width="10"/>
+      <path d="M255 138l42 42" stroke="#f2b544" stroke-width="16" stroke-linecap="round"/>
+      <path d="M200 88a26 26 0 0 1 22-14" stroke="#fff" stroke-width="5" stroke-linecap="round" fill="none" opacity=".7"/>
+    </svg>
     <div class="home-actions">
-      <button class="play-button" data-go="picker">Play</button>
-      <button id="continue">Continue</button>
+      <button class="play-button" data-go="picker">Open a case</button>
+      <button id="continue">Continue last case</button>
     </div>
   </div>
   <nav class="home-nav" aria-label="Main menu">
-    <button data-go="picker"><span aria-hidden="true">▦</span>Cases</button>
-    <button data-go="stats"><span aria-hidden="true">▥</span>Stats</button>
-    <button data-go="settings"><span aria-hidden="true">⚙</span>Settings</button>
+    <button data-go="picker"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h7l2 2h9v11H3z"/></svg>Cases</button>
+    <button data-go="stats"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 20V11M12 20V5M19 20v-6"/></svg>Stats</button>
+    <button data-go="settings"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1 7 17M17 7l2.1-2.1"/></svg>Settings</button>
   </nav>
 </section>
 <section id="picker" class="screen" hidden><header><button data-go="home" aria-label="Back">←</button><h2 id="pickTitle">Choose a case</h2></header><div id="choices" role="group" aria-label="Difficulty"></div><select id="diff" hidden><option>Easy</option><option>Medium</option><option>Hard</option><option>Expert</option></select><p id="progress"></p><div id="levels"></div><div class="tools"><button id="prevPage" aria-label="Previous page">‹</button><span id="page"></span><button id="nextPage" aria-label="Next page">›</button></div><div class="tools"><input id="number" type="number" min="1" max="1000" value="1" aria-label="Case number"><button id="jump">Go to case</button></div></section>
 <section id="play" class="screen workspace" hidden>
-  <header><button data-go="picker" aria-label="Back to cases">←</button><h2 id="playTitle">Case</h2><span id="timer">00:00</span></header>
+  <div class="case-bar"><header><button data-go="picker" aria-label="Back to cases">←</button><h2 id="playTitle">Case</h2><span id="timer">00:00</span></header>
   <nav class="case-nav" aria-label="Case sections">
     <a href="#grid">Grid</a><a href="#evidence">Evidence</a><a href="#dossiers">Dossiers</a><a href="#notes">Notes</a><a href="#accusation">Accuse</a>
-  </nav>
+  </nav></div>
   <h3 id="caseTitle"></h3>
   <p id="story"></p>
   <div class="case-layout">
@@ -56,4 +71,4 @@
     <button id="next">Next case →</button>
   </section>
 </section>
-<section id="settings" class="screen" hidden><header><button data-go="home" aria-label="Back">←</button><h2>Settings</h2></header><label><input type="checkbox" id="auto"> Auto-elimination</label><p><button id="install" hidden>Install app</button></p></section><section id="stats" class="screen" hidden><header><button data-go="home" aria-label="Back">←</button><h2>Statistics</h2></header><div id="statBody"></div></section></main><script src="puzzles-v3.js"></script><script src="game-v4.js?v=5"></script></body></html>
+<section id="settings" class="screen" hidden><header><button data-go="home" aria-label="Back">←</button><h2>Settings</h2></header><label><input type="checkbox" id="auto"> Auto-elimination</label><p><button id="install" hidden>Install app</button></p></section><section id="stats" class="screen" hidden><header><button data-go="home" aria-label="Back">←</button><h2>Statistics</h2></header><div id="statBody"></div></section></main><script src="puzzles-v3.js"></script><script src="game-v4.js?v=6"></script></body></html>
